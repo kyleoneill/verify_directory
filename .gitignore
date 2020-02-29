@@ -1,0 +1,6 @@
+/target
+**/*.rs.bk
+*.txt
+testing/*
+test1/*
+test2/*
