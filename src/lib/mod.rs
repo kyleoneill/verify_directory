@@ -1,6 +1,7 @@
 use std::env;
 use std::path::Path;
 use std::path::PathBuf;
+use std::time::{Instant};
 
 mod gen_hashmap;
 use gen_hashmap::generate_hashmap;
@@ -38,10 +39,14 @@ impl Config {
 }
 
 pub fn run(config: Config) -> Result<(), &'static str> {
+    let start = Instant::now();
     let directory_map = match generate_hashmap(config.first_dir.as_path(), &config.first_dir){
         Ok(res) => res,
         Err(_e) => return Err("IO Error creating map of original folder")
     };
     //For multiple copy comparison, change this to be a "for directory in config.comparison_dirs do compare_hashmap_to_directory"
-    compare_hashmap_to_directory(directory_map, config.second_dir.as_path(), &config)
+    let mismatcher = compare_hashmap_to_directory(directory_map, config.second_dir.as_path(), &config).unwrap();
+    println!("Finished comparison in {} seconds", start.elapsed().as_secs());
+    mismatcher.print_mismatches();
+    Ok(())
 }
