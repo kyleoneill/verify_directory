@@ -9,7 +9,8 @@ use ring::digest::{Context, Digest, SHA256};
 use std::fs::File;
 use std::io::{BufReader, Read};
 
-pub fn generate_hashmap<'a>(dir: &Path, prefix_strip: &PathBuf) -> Result<HashMap<PathBuf, Digest>, std::io::Error> {
+pub fn generate_hashmap<'a>(dir: &Path, prefix_strip: &PathBuf) -> Result<(HashMap<PathBuf, Digest>, u64), std::io::Error> {
+    let mut bytes_checked = 0;
     let mut directory_map = HashMap::new();
     if dir.is_dir() {
         for entry in dir.read_dir()? {
@@ -17,16 +18,18 @@ pub fn generate_hashmap<'a>(dir: &Path, prefix_strip: &PathBuf) -> Result<HashMa
             let path = entry.path();
             if path.is_dir() {
                 let sub_dir_map = generate_hashmap(&path, &prefix_strip)?;
-                directory_map.extend(sub_dir_map);
+                bytes_checked += sub_dir_map.1;
+                directory_map.extend(sub_dir_map.0);
             }
             else {
                 let file_digest = hash_file(&path)?;
+                bytes_checked += std::fs::metadata(&path)?.len();
                 let file_path = path.strip_prefix(prefix_strip).unwrap().to_path_buf();
                 directory_map.insert(file_path, file_digest);
             }
         }
     }
-    Ok(directory_map)
+    Ok((directory_map, bytes_checked))
 }
 
 fn hash_file(file_name: &Path) -> Result<Digest, std::io::Error> {

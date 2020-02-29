@@ -45,8 +45,8 @@ pub fn run(config: Config) -> Result<(), &'static str> {
         Err(_e) => return Err("IO Error creating map of original folder")
     };
     //For multiple copy comparison, change this to be a "for directory in config.comparison_dirs do compare_hashmap_to_directory"
-    let mismatcher = compare_hashmap_to_directory(directory_map, config.second_dir.as_path(), &config).unwrap();
-    println!("Finished comparison in {} seconds", start.elapsed().as_secs());
+    let mismatcher = compare_hashmap_to_directory(directory_map.0, config.second_dir.as_path(), &config).unwrap();
+    println!("Finished comparing {} bytes in {} seconds", directory_map.1, start.elapsed().as_secs());
     mismatcher.print_mismatches();
     Ok(())
 }
