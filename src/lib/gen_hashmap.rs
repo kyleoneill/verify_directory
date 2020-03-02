@@ -17,9 +17,9 @@ pub fn generate_hashmap<'a>(dir: &Path, prefix_strip: &PathBuf) -> Result<(HashM
             let entry = entry?;
             let path = entry.path();
             if path.is_dir() {
-                let sub_dir_map = generate_hashmap(&path, &prefix_strip)?;
-                bytes_checked += sub_dir_map.1;
-                directory_map.extend(sub_dir_map.0);
+                let (sub_dir_map, sub_dir_size) = generate_hashmap(&path, &prefix_strip)?;
+                bytes_checked += sub_dir_size;
+                directory_map.extend(sub_dir_map);
             }
             else {
                 let file_digest = hash_file(&path)?;

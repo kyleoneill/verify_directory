@@ -40,13 +40,48 @@ impl Config {
 
 pub fn run(config: Config) -> Result<(), &'static str> {
     let start = Instant::now();
-    let directory_map = match generate_hashmap(config.first_dir.as_path(), &config.first_dir){
+    let (directory_map, directory_size) = match generate_hashmap(config.first_dir.as_path(), &config.first_dir){
         Ok(res) => res,
         Err(_e) => return Err("IO Error creating map of original folder")
     };
     //For multiple copy comparison, change this to be a "for directory in config.comparison_dirs do compare_hashmap_to_directory"
-    let mismatcher = compare_hashmap_to_directory(directory_map.0, config.second_dir.as_path(), &config).unwrap();
-    println!("Finished comparing {} bytes in {} seconds", directory_map.1, start.elapsed().as_secs());
+    let mismatcher = compare_hashmap_to_directory(directory_map, config.second_dir.as_path(), &config).unwrap();
+
+    let (new_byte_size, byte_abbr) = format_bytes(directory_size as f64);
+    let (time_elapsed, time_unit) = format_time(start);
+
+    println!("Finished comparing {:.2} {} in {} {}\n", new_byte_size, byte_abbr, time_elapsed, time_unit);
     mismatcher.print_mismatches();
     Ok(())
+}
+
+fn format_bytes(bytes: f64) -> (f64, String) {
+    if bytes > 2147483648.0 {
+        (bytes / 2147483648.0, "GB".to_string())
+    }
+    else if bytes > 2097152.0 {
+        (bytes / 2097152.0, "MB".to_string())
+    }
+    else if bytes > 2048.0 {
+        (bytes / 2048.0, "KB".to_string())
+    }
+    else {
+        (bytes, "B".to_string())
+    }
+}
+
+fn format_time(start_time: Instant) ->  (u128, String) {
+    let elapsed_time = start_time.elapsed();
+    if elapsed_time.as_secs() > 0 {
+        (elapsed_time.as_secs() as u128, "seconds".to_string())
+    }
+    else if elapsed_time.as_millis() > 0 {
+        (elapsed_time.as_millis(), "milliseconds".to_string())
+    }
+    else if elapsed_time.as_micros() > 0 {
+        (elapsed_time.as_micros(), "microseconds".to_string())
+    }
+    else {
+        (elapsed_time.as_nanos(), "nanoseconds".to_string())
+    }
 }

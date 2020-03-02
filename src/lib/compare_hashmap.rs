@@ -57,7 +57,7 @@ impl Mismatcher{
 
 pub fn compare_hashmap_to_directory(original: HashMap<PathBuf, Digest>, copy_path: &Path, config: &Config) -> Result<Mismatcher, &'static str> {
     let mut mismatcher = Mismatcher::new();
-    let copy_directory_map = generate_hashmap(&copy_path, &config.second_dir).map_err(|_e| "Error generating hashmap for file copy")?.0;
+    let (copy_directory_map, _copy_directory_size) = generate_hashmap(&copy_path, &config.second_dir).map_err(|_e| "Error generating hashmap for file copy")?;
     for (key, value) in &copy_directory_map {
         if !original.contains_key(key) {
             let does_contain = &original.values().any(|val| compare_digest(val, value));
